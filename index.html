@@ -39,6 +39,12 @@ header{background:var(--cd);border-bottom:1px solid var(--ln);padding:14px 16px}
 #shot{width:76px;height:76px;border-radius:50%;border:5px solid #fff;background:var(--pri)}
 #hold,#gal{min-height:48px;width:130px;border-radius:12px;border:0;background:#1E2830;color:#fff;touch-action:none;user-select:none;font-size:15px}
 #pc{flex:1;overflow:auto;padding:0 16px 12px;display:flex;flex-direction:column;gap:12px}.pb{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px))}.pb .btn{font-size:15px;padding:0 4px}
+@media(orientation:landscape){#cam{display:grid;grid-template-columns:1fr 170px;grid-template-rows:auto 1fr;padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+#cam #stage{grid-column:1;grid-row:1/3;margin:8px 0 8px 8px}
+#cam .ct{grid-column:2;grid-row:1;flex-direction:column;padding:8px 12px}
+#cam .cc{grid-column:2;grid-row:2;padding:8px 12px calc(8px + env(safe-area-inset-bottom,0px));justify-content:center}
+#cam .sr{flex-direction:column;gap:12px}#cam .sr #hold,#cam .sr #gal{width:100%}
+#cam #orow{flex-direction:column;align-items:stretch;gap:4px}}
 #toast{position:fixed;left:16px;right:16px;bottom:100px;z-index:9;background:#14212B;color:#fff;padding:12px 14px;border-radius:12px;text-align:center;font-size:14px}.c{text-align:center}
 </style></head><body>
 <header><input id="bld" aria-label="ชื่ออาคาร"><div class="dt"><button id="pv" aria-label="วันก่อนหน้า">‹</button><b id="dl"></b><button id="nx" aria-label="วันถัดไป">›</button></div><div id="st" class="mut"></div></header>
