@@ -12,6 +12,7 @@ header{background:var(--cd);border-bottom:1px solid var(--ln);padding:14px 16px}
 #bld{width:100%;border:0;background:none;font-size:26px;font-weight:700;padding:0;height:44px}
 .dt{display:flex;align-items:center;justify-content:space-between;margin:4px 0 6px}.dt b{font-size:20px}
 .dt button{width:48px;height:48px;border-radius:12px;border:1px solid var(--ln);background:var(--bg);font-size:22px}
+.dw{position:relative;display:inline-flex;align-items:center;gap:8px;min-height:48px;padding:0 14px;border-radius:12px;border:1px solid var(--ln);background:var(--bg)}.dw input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
 .mut{color:var(--mut);font-size:13px}main{padding:16px;display:flex;flex-direction:column;gap:12px}
 .card{background:var(--cd);border:1px solid var(--ln);border-radius:16px;padding:14px}.bl{background:var(--bl)}
 .btn{min-height:52px;border-radius:14px;background:var(--pri);color:#fff;border:0;font-weight:600;font-size:17px;width:100%}
@@ -47,13 +48,15 @@ header{background:var(--cd);border-bottom:1px solid var(--ln);padding:14px 16px}
 #cam #orow{flex-direction:column;align-items:stretch;gap:4px}}
 #toast{position:fixed;left:16px;right:16px;bottom:100px;z-index:9;background:#14212B;color:#fff;padding:12px 14px;border-radius:12px;text-align:center;font-size:14px}.c{text-align:center}
 </style></head><body>
-<header><input id="bld" aria-label="ชื่ออาคาร"><div class="dt"><button id="pv" aria-label="วันก่อนหน้า">‹</button><b id="dl"></b><button id="nx" aria-label="วันถัดไป">›</button></div><div id="st" class="mut"></div></header>
+<header><input id="bld" aria-label="ชื่ออาคาร"><div class="dt"><button id="pv" aria-label="วันก่อนหน้า">‹</button><label class="dw"><b id="dl"></b><span aria-hidden="true">✎</span><input id="dp" type="date" aria-label="เลือกวันที่"></label><button id="nx" aria-label="วันถัดไป">›</button></div><div id="st" class="mut"></div></header>
 <main><div id="co"></div><div id="items" style="display:contents"></div><button id="add" class="btn o">+ เพิ่มงาน</button></main>
 <div class="bar"><button id="exp" class="btn">ดูตัวอย่าง / ส่งออกรายงาน</button></div>
 <div id="cam" class="ov" hidden><div class="ct"><button id="cx" aria-label="ปิดกล้อง">✕</button><div><b id="ct1"></b><div id="ct2" class="mut"></div></div><button id="cg">แอปกล้อง</button></div>
 <div id="stage"><video id="vd" playsinline muted autoplay></video><img id="gh" alt="" hidden><div id="msg" hidden>เปิดกล้องในหน้านี้ไม่ได้<br>กด "แอปกล้อง" ด้านบน หรือ "คลังรูป" ด้านล่างเพื่อเพิ่มรูปแทน</div></div>
 <div class="cc"><div id="orow"><span>ความจาง Before</span><input id="op" type="range" min="0" max="100" value="55" aria-label="ความจางของ Before"></div><div class="sr"><button id="gal">คลังรูป</button><button id="shot" aria-label="ถ่ายรูป"></button><button id="hold">แตะค้างดู Before</button></div></div></div>
 <div id="pvw" class="ov l" hidden><div class="ct"><button id="px" aria-label="ปิด">✕</button><b>ตัวอย่างรายงาน</b><span style="width:44px"></span></div><div id="pc"></div><div class="pb"><button id="spng" class="btn s">บันทึก PNG</button><button id="spdf" class="btn">บันทึก PDF</button><button id="shr" class="btn s">แชร์</button></div></div>
+<datalist id="nl"></datalist>
+<div id="sh" class="ov l" hidden><div class="ct"><button id="shx" aria-label="ปิด">✕</button><b>เพิ่มงาน</b><span style="width:44px"></span></div><div style="padding:0 16px"><input id="sq" class="nm" placeholder="พิมพ์ชื่องานใหม่ หรือเลือกจากประวัติ" aria-label="ชื่องาน"><button id="sadd" class="btn" style="margin-top:8px">+ เพิ่มงานนี้</button></div><div class="lb" style="padding:14px 16px 0">ประวัติงานที่เคยพิมพ์</div><div id="hl" style="flex:1;overflow:auto;padding:8px 16px 16px;display:flex;flex-direction:column;gap:8px"></div></div>
 <div id="toast" role="status" hidden></div>
 <script>
 const $=s=>document.querySelector(s),pad=n=>String(n).padStart(2,'0'),need=n=>Math.max(1,Math.ceil(n/2));
@@ -68,12 +71,12 @@ const tx=(m,f)=>new Promise(r=>{try{const q=f(db.transaction('kv',m).objectStore
 const get=k=>db?tx('readonly',s=>s.get(k)):Promise.resolve(mem[k]);
 const put=(k,v)=>db?tx('readwrite',s=>s.put(v,k)):(mem[k]=v);
 const save=()=>put('r:'+day,R);
-async function load(){R=await get('r:'+day)||{building:(await get('bld'))||'อาคาร A',items:[]};render()}
+async function load(){R=await get('r:'+day)||{building:(await get('bld'))||'อาคาร A',items:[]};let ch=0;R.items.forEach(i=>{const t=(i.name||'').trim();if(t&&t!=='งานใหม่'&&!H.some(h=>h.t===t)){H.push({t,n:i.n});ch=1}});if(ch){put('names',H);fillDL()}render()}
 function itemHTML(it,i){const k=need(it.n);
  const side=(s,l)=>{const c=it[s].slice(0,k).filter(Boolean).length;
   return `<div style="margin-top:10px"><div class="r" style="margin:0"><span class="lb">${l}</span><span class="chip ${c>=k?'ok':'wn'}">${c}/${k}</span></div><div class="sg">${Array.from({length:k},(_,j)=>`<button class="sl ${it[s][j]?'f':''}" data-i="${i}" data-k="${s}" data-j="${j}" aria-label="${l} รูปที่ ${j+1}">${it[s][j]?`<img src="${it[s][j]}" alt="">`:j+1}</button>`).join('')}</div></div>`};
- return `<section class="card"><input class="nm" data-i="${i}" value="${esc(it.name)}" aria-label="ชื่องาน"><div class="r"><div class="n"><button data-act="m" data-i="${i}" aria-label="ลดจำนวนคน">−</button><b>${it.n} คน</b><button data-act="p" data-i="${i}" aria-label="เพิ่มจำนวนคน">+</button></div><span class="mut">2 คน = 1 รูป · ใช้ ${k} รูป</span></div>${side('b','Before')}${side('a','After')}<button class="x" data-act="x" data-i="${i}">ลบงานนี้</button></section>`}
-function render(){$('#bld').value=R.building;$('#dl').textContent=thai(day);
+ return `<section class="card"><input class="nm" list="nl" data-i="${i}" value="${esc(it.name)}" aria-label="ชื่องาน"><div class="r"><div class="n"><button data-act="m" data-i="${i}" aria-label="ลดจำนวนคน">−</button><b>${it.n} คน</b><button data-act="p" data-i="${i}" aria-label="เพิ่มจำนวนคน">+</button></div><span class="mut">2 คน = 1 รูป · ใช้ ${k} รูป</span></div>${side('b','Before')}${side('a','After')}<button class="x" data-act="x" data-i="${i}">ลบงานนี้</button></section>`}
+function render(){$('#bld').value=R.building;$('#dl').textContent=thai(day);$('#dp').value=day;
  let w=0,p=0;R.items.forEach(i=>{w+=i.n;p+=need(i.n)});$('#st').textContent=`${R.items.length} งาน · ${w} คน · ${p} รูป/ฝั่ง`;
  $('#items').innerHTML=R.items.map(itemHTML).join('')||'<p class="mut c">ยังไม่มีงาน กด "+ เพิ่มงาน" หรือย้าย After เมื่อวานมาเป็น Before</p>';carry()}
 async function carry(){const y=shift(day,-1),Y=await get('r:'+y),src=Y?Y.items.filter(i=>i.a.some(Boolean)):[],box=$('#co');
@@ -84,12 +87,25 @@ async function carry(){const y=shift(day,-1),Y=await get('r:'+y),src=Y?Y.items.f
   for(let j=0;j<need(t.n);j++)if(!t.b[j]&&s.a[j])t.b[j]=s.a[j]}await save();render();toast('คัดลอก After เมื่อวานเป็น Before แล้ว')}}
 $('#items').onclick=e=>{const b=e.target.closest('[data-act],.sl');if(!b)return;const i=+b.dataset.i,it=R.items[i];
  if(b.classList.contains('sl'))return shoot(i,b.dataset.k,+b.dataset.j);const a=b.dataset.act;
- if(a==='m'&&it.n>1)it.n--;if(a==='p')it.n++;
+ if(a==='m'&&it.n>1)it.n--;if(a==='p')it.n++;if(a==='m'||a==='p')remember(it.name,it.n);
  if(a==='x'){if(!b.dataset.s){b.dataset.s=1;b.textContent='แตะอีกครั้งเพื่อลบ';return}R.items.splice(i,1)}
  save();render()};
-$('#items').onchange=e=>{if(e.target.classList.contains('nm')){R.items[+e.target.dataset.i].name=e.target.value;save()}};
-$('#add').onclick=()=>{R.items.push({name:'งานใหม่',n:2,b:[],a:[]});save();render();const n=document.querySelectorAll('.nm');const l=n[n.length-1];l.focus();l.select()};
+$('#items').onchange=e=>{if(e.target.classList.contains('nm')){const it=R.items[+e.target.dataset.i];it.name=e.target.value;remember(it.name,it.n);save()}};
+let H=[];
+const fillDL=()=>{$('#nl').innerHTML=H.map(h=>`<option value="${esc(h.t)}">`).join('')};
+function remember(t,n){t=(t||'').trim();if(!t||t==='งานใหม่')return;H=H.filter(h=>h.t!==t);H.unshift({t,n});H=H.slice(0,60);put('names',H);fillDL()}
+function shList(){const q=$('#sq').value.trim().toLowerCase(),l=H.filter(h=>!q||h.t.toLowerCase().includes(q));
+ $('#hl').innerHTML=l.length?l.map(h=>`<div class="r" style="margin:0"><button class="btn s" style="flex:1;text-align:left;font-weight:400;padding:0 14px" data-pick="${esc(h.t)}">${esc(h.t)} <span class="mut">· ${h.n} คน</span></button><button class="x" style="margin:0" data-del="${esc(h.t)}" aria-label="ลบออกจากประวัติ">ลบ</button></div>`).join(''):'<p class="mut c">'+(H.length?'ไม่พบในประวัติ':'ยังไม่มีประวัติ ชื่องานที่เคยพิมพ์จะมาอยู่ที่นี่')+'</p>'}
+const closeSh=()=>$('#sh').hidden=true;
+function addItem(t,n){R.items.push({name:t,n:n||2,b:[],a:[]});remember(t,n||2);save();render();closeSh();if(t==='งานใหม่'){const q=document.querySelectorAll('.nm'),l=q[q.length-1];l.focus();l.select()}else toast('เพิ่มงาน "'+t+'" แล้ว')}
+$('#add').onclick=()=>{$('#sq').value='';shList();$('#sh').hidden=false};
+$('#shx').onclick=closeSh;$('#sq').oninput=shList;
+$('#sadd').onclick=()=>addItem($('#sq').value.trim()||'งานใหม่');
+$('#hl').onclick=e=>{const p=e.target.closest('[data-pick]'),d=e.target.closest('[data-del]');
+ if(p){const h=H.find(x=>x.t===p.dataset.pick);if(h)addItem(h.t,h.n)}
+ else if(d){H=H.filter(x=>x.t!==d.dataset.del);put('names',H);fillDL();shList()}};
 $('#bld').onchange=e=>{R.building=e.target.value||'อาคาร A';put('bld',R.building);save()};
+$('#dp').onchange=e=>{if(e.target.value){day=e.target.value;load()}};
 $('#pv').onclick=()=>{day=shift(day,-1);load()};$('#nx').onclick=()=>{day=shift(day,1);load()};
 const shrink=(s,w,h)=>{const r=Math.min(1,1600/Math.max(w,h)),c=document.createElement('canvas');c.width=Math.round(w*r);c.height=Math.round(h*r);c.getContext('2d').drawImage(s,0,0,c.width,c.height);return c.toDataURL('image/jpeg',.82)};
 function setCam(){const it=R.items[C.i],a=C.k==='a',g=a&&it.b[C.j],gh=$('#gh');
@@ -138,5 +154,5 @@ $('#spdf').onclick=async()=>{const J=window.jspdf&&jspdf.jsPDF;if(!J)return toas
  P.forEach((p,i)=>{if(i)d.addPage();d.addImage(p.toDataURL('image/jpeg',.92),'JPEG',0,0,210,297)});await dl(`BeforeAfter_${day}.pdf`,d.output('blob'))};
 $('#shr').onclick=async()=>{const fs=[];for(let i=0;i<P.length;i++)fs.push(new File([await blob(P[i],'image/png')],`BeforeAfter_${day}_${i+1}.png`,{type:'image/png'}));
  if(navigator.canShare&&navigator.canShare({files:fs})){try{await navigator.share({files:fs})}catch(e){}}else toast('เครื่องนี้แชร์ไฟล์จากหน้านี้ไม่ได้ ใช้ปุ่มบันทึก PNG แทน')};
-(async()=>{db=await idb();load()})();
+(async()=>{db=await idb();H=(await get('names'))||[];fillDL();load()})();
 </script></body></html>
