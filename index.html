@@ -49,12 +49,13 @@ header{background:var(--cd);border-bottom:1px solid var(--ln);padding:14px 16px}
 #toast{position:fixed;left:16px;right:16px;bottom:100px;z-index:9;background:#14212B;color:#fff;padding:12px 14px;border-radius:12px;text-align:center;font-size:14px}.c{text-align:center}
 </style></head><body>
 <header><input id="bld" aria-label="ชื่ออาคาร"><div class="dt"><button id="pv" aria-label="วันก่อนหน้า">‹</button><label class="dw"><b id="dl"></b><span aria-hidden="true">✎</span><input id="dp" type="date" aria-label="เลือกวันที่"></label><button id="nx" aria-label="วันถัดไป">›</button></div><div id="st" class="mut"></div></header>
-<main><div id="co"></div><div id="items" style="display:contents"></div><button id="add" class="btn o">+ เพิ่มงาน</button></main>
+<main><div id="co"></div><div id="items" style="display:contents"></div><button id="add" class="btn o">+ เพิ่มงาน</button><label id="mvb" class="btn s" style="display:flex;align-items:center;justify-content:center;position:relative">ย้ายรายงานนี้ไปวันที่อื่น<input id="mvd" type="date" aria-label="เลือกวันที่ปลายทาง" style="position:absolute;inset:0;width:100%;height:100%;opacity:0"></label></main>
 <div class="bar"><button id="exp" class="btn">ดูตัวอย่าง / ส่งออกรายงาน</button></div>
 <div id="cam" class="ov" hidden><div class="ct"><button id="cx" aria-label="ปิดกล้อง">✕</button><div><b id="ct1"></b><div id="ct2" class="mut"></div></div><button id="cg">แอปกล้อง</button></div>
 <div id="stage"><video id="vd" playsinline muted autoplay></video><img id="gh" alt="" hidden><div id="msg" hidden>เปิดกล้องในหน้านี้ไม่ได้<br>กด "แอปกล้อง" ด้านบน หรือ "คลังรูป" ด้านล่างเพื่อเพิ่มรูปแทน</div></div>
 <div class="cc"><div id="orow"><span>ความจาง Before</span><input id="op" type="range" min="0" max="100" value="55" aria-label="ความจางของ Before"></div><div class="sr"><button id="gal">คลังรูป</button><button id="shot" aria-label="ถ่ายรูป"></button><button id="hold">แตะค้างดู Before</button></div></div></div>
 <div id="pvw" class="ov l" hidden><div class="ct"><button id="px" aria-label="ปิด">✕</button><b>ตัวอย่างรายงาน</b><span style="width:44px"></span></div><div id="pc"></div><div class="pb"><button id="spng" class="btn s">บันทึก PNG</button><button id="spdf" class="btn">บันทึก PDF</button><button id="shr" class="btn s">แชร์</button></div></div>
+<div id="mv" class="ov l" hidden style="justify-content:center;padding:24px"><div class="card"><b id="mvt" style="font-size:18px"></b><p id="mvp" class="mut" style="font-size:14px"></p><button id="mvok" class="btn">ย้ายเลย</button><button id="mvno" class="btn s" style="margin-top:8px">ยกเลิก</button></div></div>
 <datalist id="nl"></datalist>
 <div id="sh" class="ov l" hidden><div class="ct"><button id="shx" aria-label="ปิด">✕</button><b>เพิ่มงาน</b><span style="width:44px"></span></div><div style="padding:0 16px"><input id="sq" class="nm" placeholder="พิมพ์ชื่องานใหม่ หรือเลือกจากประวัติ" aria-label="ชื่องาน"><button id="sadd" class="btn" style="margin-top:8px">+ เพิ่มงานนี้</button></div><div class="lb" style="padding:14px 16px 0">ประวัติงานที่เคยพิมพ์</div><div id="hl" style="flex:1;overflow:auto;padding:8px 16px 16px;display:flex;flex-direction:column;gap:8px"></div></div>
 <div id="toast" role="status" hidden></div>
@@ -76,7 +77,7 @@ function itemHTML(it,i){const k=need(it.n);
  const side=(s,l)=>{const c=it[s].slice(0,k).filter(Boolean).length;
   return `<div style="margin-top:10px"><div class="r" style="margin:0"><span class="lb">${l}</span><span class="chip ${c>=k?'ok':'wn'}">${c}/${k}</span></div><div class="sg">${Array.from({length:k},(_,j)=>`<button class="sl ${it[s][j]?'f':''}" data-i="${i}" data-k="${s}" data-j="${j}" aria-label="${l} รูปที่ ${j+1}">${it[s][j]?`<img src="${it[s][j]}" alt="">`:j+1}</button>`).join('')}</div></div>`};
  return `<section class="card"><input class="nm" list="nl" data-i="${i}" value="${esc(it.name)}" aria-label="ชื่องาน"><div class="r"><div class="n"><button data-act="m" data-i="${i}" aria-label="ลดจำนวนคน">−</button><b>${it.n} คน</b><button data-act="p" data-i="${i}" aria-label="เพิ่มจำนวนคน">+</button></div><span class="mut">2 คน = 1 รูป · ใช้ ${k} รูป</span></div>${side('b','Before')}${side('a','After')}<button class="x" data-act="x" data-i="${i}">ลบงานนี้</button></section>`}
-function render(){$('#bld').value=R.building;$('#dl').textContent=thai(day);$('#dp').value=day;
+function render(){$('#bld').value=R.building;$('#dl').textContent=thai(day);$('#dp').value=day;$('#mvb').hidden=!R.items.length;
  let w=0,p=0;R.items.forEach(i=>{w+=i.n;p+=need(i.n)});$('#st').textContent=`${R.items.length} งาน · ${w} คน · ${p} รูป/ฝั่ง`;
  $('#items').innerHTML=R.items.map(itemHTML).join('')||'<p class="mut c">ยังไม่มีงาน กด "+ เพิ่มงาน" หรือย้าย After เมื่อวานมาเป็น Before</p>';carry()}
 async function carry(){const y=shift(day,-1),Y=await get('r:'+y),src=Y?Y.items.filter(i=>i.a.some(Boolean)):[],box=$('#co');
@@ -128,6 +129,14 @@ $('#gal').onclick=()=>{const f=document.createElement('input');f.type='file';f.a
   for(let q=1;q<n;q++){const u=(C.j+q)%n;if(!it[k][u])ord.push(u)}
   let c=0;for(const x of fl){if(c>=ord.length)break;const b=await createImageBitmap(x,{imageOrientation:'from-image'}).catch(()=>createImageBitmap(x));it[k][ord[c++]]=shrink(b,b.width,b.height)}
   await save();render();closeCam();toast(`เพิ่มรูป ${c} รูปแล้ว`+(fl.length>c?` (อีก ${fl.length-c} รูปเกินช่องที่ว่าง)`:''))};f.click()};
+const del=k=>db?tx('readwrite',s=>s.delete(k)):(delete mem[k],Promise.resolve());let MV=null;
+$('#mvd').onchange=async e=>{const t=e.target.value;e.target.value='';if(!t)return;if(t===day)return toast('เลือกวันที่เดียวกับวันที่ที่เปิดอยู่');
+ const T=await get('r:'+t),n=T?T.items.length:0,ph=R.items.reduce((s,i)=>s+i.b.filter(Boolean).length+i.a.filter(Boolean).length,0);MV=t;
+ $('#mvt').textContent=`ย้ายรายงานไปวันที่ ${thai(t)}?`;
+ $('#mvp').textContent=`จะย้าย ${R.items.length} งาน (${ph} รูป) จากวันที่ ${thai(day)} ไปวันที่ ${thai(t)}`+(n?` ซึ่งมีรายงานอยู่แล้ว ${n} งาน งานที่ย้ายจะต่อท้าย ไม่ทับของเดิม`:'')+' วันที่เดิมจะว่างหลังย้าย';$('#mv').hidden=false};
+$('#mvno').onclick=()=>$('#mv').hidden=true;
+$('#mvok').onclick=async()=>{const T=(await get('r:'+MV))||{building:R.building,items:[]};T.items.push(...R.items);await put('r:'+MV,T);await del('r:'+day);
+ $('#mv').hidden=true;day=MV;await load();toast('ย้ายรายงานมาวันที่ '+thai(day)+' แล้ว')};
 const L=s=>new Promise(r=>{const m=new Image();m.onload=()=>r(m);m.onerror=()=>r(null);m.src=s});
 async function build(){await Promise.all(['700 40px','400 30px'].map(f=>document.fonts.load(f+' "Noto Sans Thai"','ก')));
  const W=1240,H=1754,M=90,CW=480,TW=240,TH=180,T='Before After '+R.building,pages=[];let g,y;
