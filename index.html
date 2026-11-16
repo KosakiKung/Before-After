@@ -125,10 +125,9 @@ $('#shot').onclick=async()=>{const v=$('#vd');if(!v.videoWidth)return;const it=R
 const pick=(cap,multi,cb)=>{document.querySelectorAll('.pk').forEach(e=>e.remove());const f=document.createElement('input');f.type='file';f.accept='image/*';f.className='pk';if(cap)f.capture='environment';f.multiple=!!multi;f.style.cssText='position:fixed;left:-9999px;top:0;opacity:0';document.body.append(f);f.onchange=async()=>{const fl=[...f.files];f.remove();if(fl.length)await cb(fl)};f.click()};
 const fromFile=x=>new Promise((ok,no)=>{const u=URL.createObjectURL(x),m=new Image();m.onload=()=>{URL.revokeObjectURL(u);ok(shrink(m,m.naturalWidth,m.naturalHeight))};m.onerror=()=>{URL.revokeObjectURL(u);no(new Error('img'))};m.src=u});
 $('#cg').onclick=()=>pick(true,false,async fl=>{try{R.items[C.i][C.k][C.j]=await fromFile(fl[0])}catch(e){return toast('อ่านรูปนี้ไม่ได้ ลองเลือกรูปอื่น')}await save();render();closeCam();toast('บันทึกรูปแล้ว')});
-$('#gal').onclick=()=>pick(false,true,async fl=>{const it=R.items[C.i],n=need(it.n),k=C.k,ord=[C.j];
- for(let q=1;q<n;q++){const u=(C.j+q)%n;if(!it[k][u])ord.push(u)}
+$('#gal').onclick=()=>pick(false,true,async fl=>{const it=R.items[C.i],n=need(it.n),k=C.k,ord=[];for(let u=C.j;u<n;u++)ord.push(u);
  let c=0,bad=0;for(const x of fl){if(c>=ord.length)break;try{it[k][ord[c]]=await fromFile(x);c++}catch(e){bad++}}
- await save();render();closeCam();const ex=fl.length-c-bad;toast(c?`เพิ่มรูป ${c} รูปแล้ว`+(ex>0?` (อีก ${ex} รูปเกินช่องที่ว่าง)`:''):'อ่านรูปไม่ได้ ลองเลือกรูปอื่น')});
+ await save();render();closeCam();const ex=fl.length-c-bad;toast(c?`เพิ่มรูป ${c} รูปแล้ว`+(ex>0?` (อีก ${ex} รูปเกินจำนวนช่อง)`:''):'อ่านรูปไม่ได้ ลองเลือกรูปอื่น')});
 const del=k=>db?tx('readwrite',s=>s.delete(k)):(delete mem[k],Promise.resolve());let MV=null;
 $('#mvd').onchange=async e=>{const t=e.target.value;e.target.value='';if(!t)return;if(t===day)return toast('เลือกวันที่เดียวกับวันที่ที่เปิดอยู่');
  const T=await get('r:'+t),n=T?T.items.length:0,ph=R.items.reduce((s,i)=>s+i.b.filter(Boolean).length+i.a.filter(Boolean).length,0);MV=t;
